@@ -1,58 +1,75 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, Types } = require('mongoose'); 
+const dateFormat = require('../utils/dateFormat');
 
-const reactionSchema = new Schema({
+
+const ReactionSchema = new Schema ( 
+    { 
     reactionId: {
-      type: Schema.Types.ObjectId,
-      default: () => new mongoose.Types.ObjectId(),
-    },
+        type: Schema.Types.ObjectId,
+       default: () => new Types.ObjectId()   //why need this why not default id?
+    }, 
     reactionBody: {
-      type: String,
-      required: true,
-      maxlength: 280,
-    },
-    username: {
-      type: String,
-      required: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      get: (timestamp) => new Date(timestamp).toLocaleString(), // Format timestamp on query
-    },
-  });
-  
+        type: String, 
+        required: true, 
+        maxlength: 280
+    },  
+    username: [ 
+      
+        { 
+            required: true, 
+            type: Schema.Types.String, 
+            ref: 'User'
+        }
+    ],  
 
-const thoughtSchema = new Schema({
-    thoughtText: {
-        type: String,
-        required: true,
-        minlength: 1,
-        maxlength: 280,
-    },
-    createdAt: {
+    // why does arch use type string instead of a reference? 
+    CreatedAt: {
         type: Date,
-        default: Date.now,
-    },
-    username: {
-        type: String,
-        required: true,
-    },
-    reactions: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'Reaction',
-        },
-    ],
-},
-{
-    toJSON: {
-        virtuals: true,
-    },
-    id: false,
-});
+        default: Date.now, 
+        get: (createdAtVal) => dateFormat(createdAtVal)
+    }, 
+}
+)
 
-reactionSchema.virtual('reactionCount').get(function() {
+const ThoughtSchema = new Schema(
+  {
+    thoughtText: {
+      type: String,  
+      required: true, 
+      minlength: 1,
+      maxlength: 280
+      
+    },
+     CreatedAt: {
+        type: Date,
+        default: Date.now, 
+        get: (createdAtVal) => dateFormat(createdAtVal)
+    }, 
+
+    username: [ 
+      
+        { 
+            
+            required: true, 
+            type: Schema.Types.String, 
+            ref: 'User'
+        }
+    ],
+    reactions: [ReactionSchema]
+  },
+  {
+    toJSON: {
+      virtuals: true,
+      getters: true
+    },
+    id: false
+  }
+); 
+
+ThoughtSchema.virtual('reactionCount').get(function() {
     return this.reactions.length;
-});
-const thought = model('thought', thoughtSchema);
-module.exports = { thought };
+  });
+
+const Thought = model('Thought', ThoughtSchema);
+
+module.exports = Thought;

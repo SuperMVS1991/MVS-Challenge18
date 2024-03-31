@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 // Connect to the database
 mongoose.connect('mongodb://localhost/your_database', {
     useNewUrlParser: true,
